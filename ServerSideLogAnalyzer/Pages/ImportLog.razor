@@ -1,0 +1,195 @@
+﻿@page "/Importlog"
+
+@inject IJSRuntime JsRunTime
+
+@using DataLibrary
+@using ServerSideLogAnalyzer.Models
+@using Microsoft.Extensions.Configuration
+@using System.ComponentModel.DataAnnotations;
+
+@inject IDataAccess _data
+@inject IConfiguration _config
+
+<link href="css/MyStyles/MyStyles.css" rel="stylesheet" />
+
+<h1>Tu nahrajte Log!</h1>
+
+<form>
+    <label for="myfile">Vyberte súbory:</label>
+    <input type="file" id="myfile" name="myfile" multiple><br><br>
+    <input type="submit">
+</form>
+
+<p>
+
+</p>
+
+<div class="row">
+    <div class="col">
+        <p class="display-3">Poznámky k logom:</p>
+    </div>
+    @*<div class="col">
+        <button class="btn btn-dark detailsdiv" @onclick="ShowAlert">Zobraziť formát vstupných údajov</button>
+    </div>*@
+</div>
+
+@if (logs == null)
+{
+    <p><em>Načítava sa...</em></p>
+}
+else
+{
+
+    <table class="table">
+        <thead class="thead-dark">
+            <tr>
+                <th scope="col">#ID</th>
+                <th scope="col">Dátum</th>
+                <th scope="col">Popis</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in logs)
+            {
+                <tr>
+                    <th scope="row">@item.idLogs</th>
+                    <td>@item.Date.ToString("MM/dd/yyyy")</td>
+                    <td>@item.Discription</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+<div class="container">
+    <div class="row">
+        <div class="col-sm">
+            <p class="bold">Zadajte ID, dátum and popis:</p>
+            <p>(dátum zadajte v tvare MM-DD-RRRR)</p>
+            <EditForm Model="@_info" OnValidSubmit="@HandleValidSubmit">
+                <DataAnnotationsValidator />
+                <ValidationSummary />
+
+                <InputNumber class="crudwidth" id="idValueInsert" @bind-Value="_info.idValueInsert" />
+                <InputDate class="crudwidth" id="ValueDateInsert" @bind-Value="_info.dateValueInsert" />
+                <InputText class="crudwidth" id="ValueInsert" @bind-Value="_info.discriptionValueInsert" />
+                <button type="submit" @onclick="InsertData">Pridaj</button>
+
+            </EditForm>
+        </div>
+        <div class="col-sm">
+            <p class="bold">Zadajte ID logu, ktorý chcete upraviť a následne upravte dátum a čas</p>
+            <p>(dátum zadajte v tvare MM-DD-RRRR)</p>
+            <EditForm Model="@_infoUpdate" OnValidSubmit="@HandleValidSubmit">
+                <DataAnnotationsValidator />
+                <ValidationSummary />
+
+                <InputNumber class="crudwidth" id="idValueUpdate" @bind-Value="_infoUpdate.idValueUpdate" />
+                <InputDate class="crudwidth" id="ValueDateUpdate" @bind-Value="_infoUpdate.dateValueUpdate" />
+                <InputText class="crudwidth" id="ValueUpdate" @bind-Value="_infoUpdate.discriptionValueUpdate" />
+                <button type="submit" @onclick="UpdateData">Aktualizuj</button>
+
+            </EditForm>
+        </div>
+        <div class="col-sm">
+            <p class="bold">Zadajte ID logu, ktorý chcete zmazať:</p>
+            <EditForm Model="@_infoDelete" OnValidSubmit="@HandleValidSubmit">
+                <DataAnnotationsValidator />
+                <ValidationSummary />
+
+
+                <InputNumber class="crudwidth" id="idValueDelete" @bind-Value="_infoDelete.idValueDelete" />
+                <button type="submit" @onclick="DeleteData">Vymaž</button>
+
+            </EditForm>
+        </div>
+    </div>
+</div>
+
+@code {
+
+    //async Task ShowAlert()
+    //{
+    //    await JsRunTime.InvokeVoidAsync("createAlert");
+    //}
+
+    private void HandleValidSubmit()
+    {
+        // Process the valid form
+    }
+
+    public class InfoInsert
+    {
+        [Range(1, 5000000, ErrorMessage = "Zadali ste zlé ID, Povolený rozsah je od 1 po 5000000")]
+        public int idValueInsert { get; set; }
+
+        [Required(ErrorMessage = "The Job Start Date field is Required")]
+        public DateTime dateValueInsert { get; set; }
+
+        [Required]
+        [StringLength(2000, ErrorMessage = "Vaš popis prekročil hranicu 2000 znakov!")]
+        public string discriptionValueInsert { get; set; }
+    }
+
+    public class InfoUpdate
+    {
+        [Range(1, 5000000, ErrorMessage = "Zadali ste zlé ID, Povolený rozsah je od 1 po 5000000")]
+        public int idValueUpdate { get; set; }
+
+        [Required(ErrorMessage = "The Job Start Date field is Required")]
+        public DateTime dateValueUpdate { get; set; }
+
+        [Required]
+        [StringLength(2000, ErrorMessage = "Vaš popis prekročil hranicu 2000 znakov!")]
+        public string discriptionValueUpdate { get; set; }
+    }
+
+    public class InfoDelete
+    {
+        [Range(1, 5000000, ErrorMessage = "Zadali ste zlé ID, Povolený rozsah je od 1 po 5000000")]
+        public int idValueDelete { get; set; }
+    }
+
+    List<LogModel> logs;
+
+    private async Task InsertData()
+    {
+        string sql = "insert into logs (idLogs, Date, Discription) values (@idLogs, @Date, @Discription);";
+
+        await _data.SaveData(sql, new { idLogs = _info.idValueInsert, Date = _info.dateValueInsert, Discription = _info.discriptionValueInsert }, _config.GetConnectionString("default"));
+
+        await OnInitializedAsync();
+
+    }
+
+    private async Task UpdateData()
+    {
+        string sql = "update logs set Date = @Date,Discription = @Discription where idLogs = @idLogs";
+
+        await _data.SaveData(sql, new { idLogs = _infoUpdate.idValueUpdate, Date = _infoUpdate.dateValueUpdate, Discription = _infoUpdate.discriptionValueUpdate }, _config.GetConnectionString("default"));
+
+        await OnInitializedAsync();
+    }
+
+    private async Task DeleteData()
+    {
+        string sql = "delete from logs where idLogs = @idLogs";
+
+        await _data.SaveData(sql, new { idLogs = _infoDelete.idValueDelete }, _config.GetConnectionString("default"));
+
+        await OnInitializedAsync();
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        string sql = "select * from logs";
+        logs = await _data.LoadData<LogModel, dynamic>(sql, new { }, _config.GetConnectionString("default"));
+    }
+
+    private InfoInsert _info { get; set; } = new InfoInsert();
+    private InfoUpdate _infoUpdate { get; set; } = new InfoUpdate();
+    private InfoDelete _infoDelete { get; set; } = new InfoDelete();
+
+    //alert of what type should inputs be
+}
+
