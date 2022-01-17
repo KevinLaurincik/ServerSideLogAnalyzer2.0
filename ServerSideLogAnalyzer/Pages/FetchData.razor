@@ -1,4 +1,5 @@
 ﻿@page "/fetchdata"
+@attribute [Authorize(Roles = "LoggedInUser")]
 
 @using ServerSideLogAnalyzer.Data
 @inject WeatherForecastService ForecastService

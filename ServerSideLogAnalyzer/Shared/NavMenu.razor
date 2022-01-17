@@ -13,14 +13,18 @@
             </NavLink>
         </li>
         <li class="nav-item px-3">
-            <NavLink class="nav-link" href="Importlog">
-                <span class="oi oi-plus" aria-hidden="true"></span> Import log
-            </NavLink>
+            <AuthorizeView Roles="LoggedInUser">
+                <NavLink class="nav-link" href="Importlog">
+                    <span class="oi oi-plus" aria-hidden="true"></span> Import log
+                </NavLink>
+            </AuthorizeView>
         </li>
         <li class="nav-item px-3">
-            <NavLink class="nav-link" href="fetchdata">
-                <span class="oi oi-list-rich" aria-hidden="true"></span> Analýza dát
-            </NavLink>
+            <AuthorizeView Roles="LoggedInUser">
+                <NavLink class="nav-link" href="fetchdata">
+                    <span class="oi oi-list-rich" aria-hidden="true"></span> Analýza dát
+                </NavLink>
+            </AuthorizeView>
         </li>
         <li class="nav-item px-3">
             <NavLink class="nav-link" href="info">

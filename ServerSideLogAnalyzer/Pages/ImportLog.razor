@@ -1,4 +1,5 @@
 ﻿@page "/Importlog"
+@attribute [Authorize(Roles = "LoggedInUser")]
 
 @inject IJSRuntime JsRunTime
 
